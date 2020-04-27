@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block intro %}
+{% block intro_jquery %}
   <a href="https://jquery.com/">jQuery</a> is a popular library that
   adds cross browser APIs for common tasks. However, it requires loading
   an extra library.
@@ -8,9 +8,16 @@
 
 {% block script %}
   <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.0/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.0/highlight.min.js"></script>
+  <!-- and it's easy to individually load additional languages -->
+  <script charset="UTF-8" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.0/languages/go.min.js"></script>
+
   <script>
     function addSubmit(ev) {
       ev.preventDefault();
+      console.log("The query code is ", $(this));
       $.ajax({
         method: 'POST',
         url: {{ url_for('add')|tojson }},
@@ -19,7 +26,8 @@
     }
 
     function addShow(data) {
-      $('#result').text(data.result);
+      console.log("addShow data ", data);
+      $('#code_result').text(data.result);
     }
 
     $('#calc').on('submit', addSubmit);

@@ -10,11 +10,51 @@ from werkzeug.exceptions import abort
 from flaskr.auth import login_required
 from flaskr.db import get_db
 
+from flaskr.codesearch.src.predict import *
+
+import os
+from dpu_utils.utils import RichPath
+from flaskr.codesearch.src import model_restore_helper
+
 bp = Blueprint("blog", __name__)
 
+import sys
+sys.path.insert(0, "E:\\Projects\\Flask\\my_flask_apps\\my_csn_app\\examples\\tutorial\\flaskr\\codesearch\\src\\utils")
+sys.path.insert(1, "E:\\Projects\\Flask\\my_flask_apps\\my_csn_app\\examples\\tutorial\\flaskr\\codesearch\\src")
+print("the syspath is added till dpu_utils")
+print(sys.path)
 
-@bp.route("/")
+dir_resources = os.getcwd()+"\\flaskr\\codesearch\\resources\\"
+#local_model_path = dir_resources + "saved_models\\rnn-2020-04-15-06-22-47_model_best.pkl.gz"
+local_model_path = dir_resources + "saved_models\\neuralbowmodel-2020-04-11-00-02-37_model_best.pkl.gz"
+model_path = RichPath.create(local_model_path, None)
+print("Restoring model from %s" % model_path)
+#model = model_restore_helper.restore(path=model_path, is_train=False, hyper_overrides={})
+
+@bp.route("/", methods=("GET", "POST"))
 def index():
+    """Show all the posts, most recent first."""
+    print("in blog index")
+    if request.method == "POST":
+        search_query = request.form["title"]
+        #body = request.form["body"]
+        error = None
+
+        if not search_query:
+            error = "Search Query Cant Be Empty"
+
+        if error is not None:
+            flash(error)
+        else:
+            print("the search query is ", search_query)
+            posts = get_similar_code(search_query)
+            print("the posts are ", posts)
+            return render_template("search/index.html")
+
+    return render_template("search/create.html")
+
+@bp.route("/posts")
+def blog_posts():
     """Show all the posts, most recent first."""
     db = get_db()
     posts = db.execute(
